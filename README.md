@@ -15,7 +15,7 @@ Interface web de gestion d'établissement scolaire, développée avec Vue 3 et C
 
 ### 1. Cloner le projet
 ```bash
-git clone https://github.com/tonuser/school_management_front.git
+git clone https://github.com/AdamLonewolf/school_management_front
 cd school_management_front
 ```
 
