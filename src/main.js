@@ -1,25 +1,11 @@
-/**
- * main.js - Application Entry Point
- *
- * This file initializes the Vue 3 application and configures:
- * - Pinia for state management
- * - Vue Router for client-side routing
- * - CoreUI Vue component library
- * - Global icon system
- * - Documentation helper components
- *
- * The application uses:
- * - Vue 3 Composition API
- * - Vite for building and development
- * - CoreUI Vue components
- * - Hash-based routing for static hosting compatibility
- */
+
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 // CoreUI Vue components and icons
 import CoreuiVue from '@coreui/vue'
@@ -33,11 +19,13 @@ import DocsIcons from '@/components/DocsIcons'
 
 // Create Vue application instance
 const app = createApp(App)
+const pinia = createPinia()
 
 // Install plugins
-app.use(createPinia()) // State management
+app.use(pinia)// State management
 app.use(router) // Router for SPA navigation
 app.use(CoreuiVue) // CoreUI component library
+pinia.use(piniaPluginPersistedstate)
 
 // Provide icons globally
 app.provide('icons', icons)

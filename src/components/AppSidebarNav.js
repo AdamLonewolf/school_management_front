@@ -3,7 +3,8 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import { cilExternalLink } from '@coreui/icons'
 import { CBadge, CSidebarNav, CNavItem, CNavGroup, CNavTitle } from '@coreui/vue'
-import nav from '@/_nav.js'
+import getNav from '@/_nav.js'
+import { useAuth } from '@/stores/auth'
 
 import simplebar from 'simplebar-vue'
 import 'simplebar-vue/dist/simplebar.min.css'
@@ -50,6 +51,9 @@ const AppSidebarNav = defineComponent({
   setup() {
     const route = useRoute()
     const firstRender = ref(true)
+
+    const authStore = useAuth()
+    const nav = getNav(authStore.userRole)
 
     onMounted(() => {
       firstRender.value = false
@@ -172,14 +176,12 @@ const AppSidebarNav = defineComponent({
           )
     }
 
-    return () =>
+     return () =>
       h(
         CSidebarNav,
+        { as: simplebar },
         {
-          as: simplebar,
-        },
-        {
-          default: () => nav.map((item) => renderItem(item)),
+          default: () => nav.map((item) => renderItem(item)), 
         },
       )
   },

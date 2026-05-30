@@ -23,6 +23,7 @@ import {
   cibCcPaypal,
   cibCcApplePay,
   cibCcAmex,
+  
 } from '@coreui/icons'
 import { cifUs, cifBr, cifIn, cifFr, cifEs, cifPl } from '@coreui/icons'
 import {
