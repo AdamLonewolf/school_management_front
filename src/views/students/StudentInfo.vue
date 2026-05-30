@@ -26,7 +26,6 @@ async function fetchStudent() {
       api.get('academics/absences/'),
     ])
     student.value = studentRes.data
-    // Filtre les notes et absences de cet étudiant
     marks.value = marksRes.data.filter(m => m.enrollment.student.includes(
       studentRes.data.user.first_name
     ))
@@ -47,14 +46,38 @@ const average = () => {
   const avg = marks.value.reduce((sum, m) => sum + parseFloat(m.mark), 0) / marks.value.length
   return avg.toFixed(2)
 }
+
+async function downloadBulletin() {
+  try {
+    const response = await api.get(
+      `academics/students/${route.params.id}/bulletin/`,
+      { responseType: 'blob' }
+    )
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `bulletin_${student.value.student_number || student.value.id}.pdf`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch {
+    alert('Erreur lors de la génération du bulletin.')
+  }
+}
 </script>
 
 <template>
   <div>
-    <!-- Bouton retour -->
-    <CButton color="secondary" variant="outline" class="mb-4" @click="router.back()">
-      <CIcon icon="cil-arrow-left" class="me-2" /> Retour
-    </CButton>
+    <!-- Boutons retour + bulletin -->
+    <div class="d-flex gap-2 mb-4">
+      <CButton color="secondary" variant="outline" @click="router.back()">
+        <CIcon icon="cil-arrow-left" class="me-2" /> Retour
+      </CButton>
+      <CButton color="success" @click="downloadBulletin">
+        📄 Télécharger le bulletin
+      </CButton>
+    </div>
 
     <CAlert v-if="error" color="danger">{{ error }}</CAlert>
 

@@ -6,20 +6,32 @@ import api from '@/services/api'
 
 const authStore = useAuth()
 const router = useRouter()
-
+const role = authStore.userRole
 const fullName = authStore.fullName
+const userId = authStore.user.id
 
 async function handleLogout() {
-    try {
-       const response = await api.post('accounts/auth/logout/', {
-        refresh : authStore.user.refresh
-       })
-    } catch (err) {
-      console.error('Erreur Logout: ', err)
-    } finally {
-        authStore.logout()
-        router.push('/auth/login')
-    }
+  try {
+    await api.post('accounts/auth/logout/', {
+      refresh: authStore.user.refresh
+    })
+  } catch (err) {
+    console.error('Erreur logout:', err)
+  } finally {
+    authStore.logout()
+    router.push('/auth/login')
+  }
+}
+
+async function goToProfile() {
+  try {
+    // Récupère le student lié à cet user
+    const response = await api.get('accounts/students/')
+    const student = response.data[0] // l'étudiant connecté voit que lui-même
+    router.push(`/students/${student.id}`)
+  } catch {
+    console.error('Erreur profil')
+  }
 }
 </script>
 
@@ -36,13 +48,21 @@ async function handleLogout() {
       >
         Mon compte
       </CDropdownHeader>
-      <CDropdownItem>
-        <CIcon icon="cil-user" /> Profil
+
+      <!-- Profil visible seulement pour l'étudiant -->
+      <CDropdownItem
+        v-if="role === 'student'"
+        @click="goToProfile"
+        style="cursor: pointer"
+      >
+        <CIcon icon="cil-user" class="me-2" /> Mon profil
       </CDropdownItem>
-      <CDropdownDivider />
-     <CDropdownItem @click="handleLogout" class="logout-item" style="cursor: pointer">
-     <CIcon icon="cil-lock-locked" /> Logout
-    </CDropdownItem>
+
+      <CDropdownDivider v-if="role === 'student'" />
+
+      <CDropdownItem @click="handleLogout" style="cursor: pointer" class="logout-item">
+        <CIcon icon="cil-lock-locked" class="me-2" /> Logout
+      </CDropdownItem>
     </CDropdownMenu>
   </CDropdown>
 </template>
