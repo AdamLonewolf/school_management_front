@@ -68,16 +68,33 @@ const router = createRouter({
   },
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const authStore = useAuth()
-  const isAuthenticated = authStore.isAuthenticated
-  console.log('Navigation vers:', to.name, '| Connecté:', isAuthenticated)
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  // Si token présent, on vérifie qu'il est encore valide
+  if (authStore.user.token) {
+    try {
+      // décodage du JWT pour vérifier l'expiration
+      const payload = JSON.parse(atob(authStore.user.token.split('.')[1]))
+      const isExpired = payload.exp * 1000 < Date.now()
+
+      if (isExpired) {
+        // Si le token est expiré, on vide tout et on redirige vers le login
+        authStore.logout()
+        if (to.name !== 'Login') return { name: 'Login' }
+      }
+    } catch {
+      // Token malformé → on vide tout
+      authStore.logout()
+      if (to.name !== 'Login') return { name: 'Login' }
+    }
+  }
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return { name: 'Login' }
   }
 
-  if (to.name === 'Login' && isAuthenticated) {
+  if (to.name === 'Login' && authStore.isAuthenticated) {
     return { name: 'Dashboard' }
   }
 })

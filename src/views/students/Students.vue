@@ -184,8 +184,8 @@ const pageTitle = computed(() => {
           <CCol :md="4">
             <CFormSelect v-model="filterLevel">
               <option value="">Tous les niveaux</option>
-              <option v-for="level in levels" :key="level.id" :value="level.id">
-                {{ level.name }}
+             <option v-for="level in levels" :key="level.id" :value="level.id">
+                {{ level.name }} — {{ level.field?.name || '' }}
               </option>
             </CFormSelect>
           </CCol>
@@ -326,7 +326,7 @@ const pageTitle = computed(() => {
             <CFormSelect v-model="form.level_id">
               <option value="">Sélectionner un niveau</option>
               <option v-for="level in levels" :key="level.id" :value="level.id">
-                {{ level.name }}
+                {{ level.name }} — {{ level.field?.name || '' }}
               </option>
             </CFormSelect>
           </CCol>

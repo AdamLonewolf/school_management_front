@@ -25,14 +25,18 @@ async function handleLogout() {
 
 async function goToProfile() {
   try {
-    // Récupère le student lié à cet user
     const response = await api.get('accounts/students/')
-    const student = response.data[0] // l'étudiant connecté voit que lui-même
-    router.push(`/students/${student.id}`)
-  } catch {
-    console.error('Erreur profil')
+    if (response.data && response.data.length > 0) {
+      const student = response.data[0]
+      router.push(`/students/${student.id}`)
+    } else {
+      alert('Profil étudiant introuvable.')
+    }
+  } catch (err) {
+    console.error('Erreur profil', err)
   }
 }
+
 </script>
 
 <template>

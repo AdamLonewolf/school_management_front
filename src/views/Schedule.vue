@@ -106,6 +106,12 @@ function openEditModal(schedule) {
 async function saveSchedule() {
   saving.value = true
   modalError.value = ''
+  
+  if (!form.value.course_id || !form.value.day || !form.value.start_time || !form.value.end_time) {
+    modalError.value = 'Veuillez remplir tous les champs obligatoires.'
+    return
+  }
+
   try {
     if (isEditing.value) await api.put(`academics/schedules/${editingId.value}/`, form.value)
     else await api.post('academics/schedules/', form.value)
