@@ -26,14 +26,16 @@ async function handleLogout() {
 async function goToProfile() {
   try {
     const response = await api.get('accounts/students/')
+    console.log(response.data)
     if (response.data && response.data.length > 0) {
       const student = response.data[0]
-      router.push(`/students/${student.id}`)
+      console.log('Student ID:', student.id)
+      router.push({ name: 'StudentDetail', params: { id: student.id } })
     } else {
-      alert('Profil étudiant introuvable.')
+      alert('Profil introuvable.')
     }
   } catch (err) {
-    console.error('Erreur profil', err)
+    console.error('Erreur:', err)
   }
 }
 

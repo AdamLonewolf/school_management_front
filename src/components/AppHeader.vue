@@ -83,7 +83,7 @@ onMounted(() => {
       </CHeaderNav>
     </CContainer>
     <CContainer class="px-4" fluid>
-      <AppBreadcrumb />
+      <AppBreadcrumb v-if="!$route.meta.hideBreadcrumb" />
     </CContainer>
   </CHeader>
 </template>

@@ -41,12 +41,6 @@ const markColor = (m) => {
   return 'danger'
 }
 
-const average = () => {
-  if (!marks.value.length) return '—'
-  const avg = marks.value.reduce((sum, m) => sum + parseFloat(m.mark), 0) / marks.value.length
-  return avg.toFixed(2)
-}
-
 async function downloadBulletin() {
   try {
     const response = await api.get(
@@ -74,7 +68,7 @@ async function downloadBulletin() {
       <CButton color="secondary" variant="outline" @click="router.back()">
         <CIcon icon="cil-arrow-left" class="me-2" /> Retour
       </CButton>
-      <CButton color="success" @click="downloadBulletin">
+      <CButton color="dark" @click="downloadBulletin">
         📄 Télécharger le bulletin
       </CButton>
     </div>
@@ -87,7 +81,7 @@ async function downloadBulletin() {
     </div>
 
     <div v-else-if="student">
-      <!-- Carte profil -->
+      <!-- Carte profil — sans moyenne -->
       <CCard class="mb-4">
         <CCardBody>
           <CRow class="align-items-center">
@@ -102,10 +96,6 @@ async function downloadBulletin() {
               <p class="text-body-secondary mb-1">{{ student.user.email }}</p>
               <CBadge color="info" class="me-2">{{ student.student_number || 'N° non défini' }}</CBadge>
               <CBadge color="primary">{{ student.level?.name || 'Niveau non défini' }}</CBadge>
-            </CCol>
-            <CCol xs="auto" class="text-end">
-              <div class="fs-1 fw-bold text-primary">{{ average() }}</div>
-              <small class="text-body-secondary">Moyenne générale</small>
             </CCol>
           </CRow>
         </CCardBody>
@@ -148,8 +138,8 @@ async function downloadBulletin() {
         <CCol :md="6">
           <CCard class="h-100">
             <CCardHeader><strong>Statistiques</strong></CCardHeader>
-            <CCardBody>
-              <CRow class="text-center">
+            <CCardBody class="d-flex align-items-center justify-content-center">
+              <CRow class="text-center w-100">
                 <CCol>
                   <div class="fs-3 fw-bold text-primary">{{ marks.length }}</div>
                   <small class="text-body-secondary">Notes</small>

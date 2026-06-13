@@ -6,13 +6,11 @@ import api from '@/services/api'
 const authStore = useAuth()
 const role = authStore.userRole
 
-
 const students = ref([])
 const levels = ref([])
 const fields = ref([])
 const loading = ref(false)
 const error = ref('')
-
 
 const filterLevel = ref('')
 const filterField = ref('')
@@ -22,6 +20,7 @@ const showModal = ref(false)
 const isEditing = ref(false)
 const modalError = ref('')
 const saving = ref(false)
+const selectedField = ref('')
 
 const emptyForm = {
   first_name: '',
@@ -37,7 +36,6 @@ const emptyForm = {
 const form = ref({ ...emptyForm })
 const editingId = ref(null)
 
-
 onMounted(async () => {
   await fetchStudents()
   if (role === 'admin') {
@@ -52,7 +50,7 @@ async function fetchStudents() {
   try {
     const response = await api.get('accounts/students/')
     students.value = response.data
-  } catch (err) {
+  } catch {
     error.value = 'Impossible de charger les étudiants.'
   } finally {
     loading.value = false
@@ -73,6 +71,11 @@ async function fetchFields() {
   } catch {}
 }
 
+// Niveaux filtrés selon la filière choisie dans le modal
+const filteredLevelsByField = computed(() => {
+  if (!selectedField.value) return []
+  return levels.value.filter(l => l.field?.id == selectedField.value)
+})
 
 const filteredStudents = computed(() => {
   return students.value.filter(s => {
@@ -84,18 +87,21 @@ const filteredStudents = computed(() => {
   })
 })
 
-
 function openAddModal() {
   isEditing.value = false
   form.value = { ...emptyForm }
   editingId.value = null
   modalError.value = ''
+  selectedField.value = ''
   showModal.value = true
 }
 
 function openEditModal(student) {
   isEditing.value = true
   editingId.value = student.id
+  // Trouve la filière du niveau actuel
+  const currentLevel = levels.value.find(l => l.id == student.level_id)
+  selectedField.value = currentLevel?.field?.id || ''
   form.value = {
     first_name: student.user.first_name,
     last_name: student.user.last_name,
@@ -115,7 +121,6 @@ function closeModal() {
   showModal.value = false
 }
 
-
 async function saveStudent() {
   saving.value = true
   modalError.value = ''
@@ -129,8 +134,6 @@ async function saveStudent() {
     closeModal()
   } catch (err) {
     modalError.value = err.response?.data?.detail || 'Une erreur est survenue.'
-  } finally {
-    saving.value = false
   }
 }
 
@@ -144,7 +147,6 @@ async function deleteStudent(id) {
   }
 }
 
-// Titre de la page selon le rôle
 const pageTitle = computed(() => {
   if (role === 'admin') return 'Liste des étudiants'
   if (role === 'teacher') return 'Mes étudiants'
@@ -155,13 +157,10 @@ const pageTitle = computed(() => {
 
 <template>
   <div>
-    
     <CRow class="mb-4 align-items-center">
       <CCol>
         <h3 class="fw-bold mb-0">{{ pageTitle }}</h3>
-        <p class="text-body-secondary mb-0">
-          {{ filteredStudents.length }} étudiant(s) trouvé(s)
-        </p>
+        <p class="text-body-secondary mb-0">{{ filteredStudents.length }} étudiant(s) trouvé(s)</p>
       </CCol>
       <CCol xs="auto" v-if="role === 'admin'">
         <CButton color="primary" @click="openAddModal">
@@ -170,21 +169,16 @@ const pageTitle = computed(() => {
       </CCol>
     </CRow>
 
-
     <CCard class="mb-4" v-if="role === 'admin'">
       <CCardBody>
         <CRow class="g-3">
           <CCol :md="4">
-            <CFormInput
-              v-model="filterSearch"
-              placeholder="Rechercher par nom..."
-              prepend="🔍"
-            />
+            <CFormInput v-model="filterSearch" placeholder="Rechercher par nom..." />
           </CCol>
           <CCol :md="4">
             <CFormSelect v-model="filterLevel">
               <option value="">Tous les niveaux</option>
-             <option v-for="level in levels" :key="level.id" :value="level.id">
+              <option v-for="level in levels" :key="level.id" :value="level.id">
                 {{ level.name }} — {{ level.field?.name || '' }}
               </option>
             </CFormSelect>
@@ -201,19 +195,15 @@ const pageTitle = computed(() => {
       </CCardBody>
     </CCard>
 
-    
     <CAlert v-if="error" color="danger" class="mb-4">{{ error }}</CAlert>
-
 
     <div v-if="loading" class="text-center py-5">
       <CSpinner color="primary" />
       <p class="mt-2 text-body-secondary">Chargement...</p>
     </div>
 
-    
     <CCard v-else>
       <CCardBody class="p-0">
-
         <div v-if="filteredStudents.length === 0" class="text-center py-5">
           <p class="fs-1">🎓</p>
           <p class="fw-semibold">Aucun étudiant pour l'instant.</p>
@@ -222,7 +212,6 @@ const pageTitle = computed(() => {
           </p>
         </div>
 
-        <!-- Tableau rempli -->
         <CTable v-else hover responsive class="mb-0">
           <CTableHead class="bg-body-secondary">
             <CTableRow>
@@ -256,35 +245,22 @@ const pageTitle = computed(() => {
               </CTableDataCell>
               <CTableDataCell>{{ student.phone_number || '—' }}</CTableDataCell>
               <CTableDataCell v-if="role === 'admin'">
-                <CButton
-                  color="warning"
-                  size="sm"
-                  class="me-2"
-                  @click="openEditModal(student)"
-                >
+                <CButton color="warning" size="sm" class="me-2" @click="openEditModal(student)">
                   <CIcon icon="cil-pencil" /> Modifier
                 </CButton>
-                <CButton
-                  color="danger"
-                  size="sm"
-                  @click="deleteStudent(student.id)"
-                >
+                <CButton color="danger" size="sm" @click="deleteStudent(student.id)">
                   <CIcon icon="cil-trash" /> Supprimer
                 </CButton>
               </CTableDataCell>
             </CTableRow>
           </CTableBody>
         </CTable>
-
       </CCardBody>
     </CCard>
 
-    <!-- Modal Ajouter / Modifier -->
     <CModal :visible="showModal" @close="closeModal" size="lg" backdrop="static">
       <CModalHeader>
-        <CModalTitle>
-          {{ isEditing ? 'Modifier l\'étudiant' : 'Ajouter un étudiant' }}
-        </CModalTitle>
+        <CModalTitle>{{ isEditing ? "Modifier l'étudiant" : 'Ajouter un étudiant' }}</CModalTitle>
       </CModalHeader>
       <CModalBody>
         <CAlert v-if="modalError" color="danger">{{ modalError }}</CAlert>
@@ -302,7 +278,7 @@ const pageTitle = computed(() => {
             <CFormInput type="email" v-model="form.email" placeholder="email@exemple.com" />
           </CCol>
           <CCol :md="6">
-            <CFormLabel>{{ isEditing ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe' }}</CFormLabel>
+            <CFormLabel>{{ isEditing ? 'Nouveau mot de passe (laisser vide)' : 'Mot de passe' }}</CFormLabel>
             <CFormInput type="password" v-model="form.password" placeholder="••••••••" />
           </CCol>
           <CCol :md="6">
@@ -322,30 +298,40 @@ const pageTitle = computed(() => {
             <CFormInput v-model="form.phone_number" placeholder="+225 07 00 00 00" />
           </CCol>
           <CCol :md="6">
-            <CFormLabel>Niveau</CFormLabel>
-            <CFormSelect v-model="form.level_id">
-              <option value="">Sélectionner un niveau</option>
-              <option v-for="level in levels" :key="level.id" :value="level.id">
-                {{ level.name }} — {{ level.field?.name || '' }}
+            <CFormLabel>Adresse</CFormLabel>
+            <CFormInput v-model="form.address" placeholder="Adresse complète" />
+          </CCol>
+
+          <!-- Filière d'abord -->
+          <CCol :md="6">
+            <CFormLabel>Filière</CFormLabel>
+            <CFormSelect v-model="selectedField" @change="form.level_id = ''">
+              <option value="">Sélectionner une filière</option>
+              <option v-for="field in fields" :key="field.id" :value="field.id">
+                {{ field.name }}
               </option>
             </CFormSelect>
           </CCol>
-          <CCol :md="12">
-            <CFormLabel>Adresse</CFormLabel>
-            <CFormInput v-model="form.address" placeholder="Adresse complète" />
+
+          <!-- Niveau filtré selon la filière -->
+          <CCol :md="6">
+            <CFormLabel>Niveau</CFormLabel>
+            <CFormSelect v-model="form.level_id" :disabled="!selectedField">
+              <option value="">{{ selectedField ? 'Sélectionner un niveau' : 'Choisir une filière d\'abord' }}</option>
+              <option v-for="level in filteredLevelsByField" :key="level.id" :value="level.id">
+                {{ level.name }}
+              </option>
+            </CFormSelect>
           </CCol>
         </CRow>
       </CModalBody>
       <CModalFooter>
-        <CButton color="secondary" @click="closeModal" :disabled="saving">
-          Annuler
-        </CButton>
+        <CButton color="secondary" @click="closeModal" :disabled="saving">Annuler</CButton>
         <CButton color="primary" @click="saveStudent" :disabled="saving">
           <CSpinner v-if="saving" size="sm" class="me-2" />
           {{ saving ? 'Enregistrement...' : isEditing ? 'Modifier' : 'Ajouter' }}
         </CButton>
       </CModalFooter>
     </CModal>
-
   </div>
 </template>

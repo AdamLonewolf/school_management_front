@@ -29,7 +29,7 @@ const routes = [
     children: [
       { path: '', name: 'Dashboard', component: Dashboard },
       { path: 'students', name: 'Students', component: Students },
-      { path: 'students/:id', name: 'StudentInfo', component: StudentInfo },
+      { path: 'students/:id', name: 'StudentInfo', component: StudentInfo,  meta: { hideBreadcrumb: true } },
       { path: 'parents', name: 'Parents', component: Parents },
       { path: 'teachers', name: 'Teachers', component: Teachers },
       { path: 'assignments', name: 'Assignments', component: Assignments },
